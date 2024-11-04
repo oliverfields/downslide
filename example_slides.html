@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="shortcut icon" href="favicon.png">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="author" content="Oliver Fields">
+<title>Slides with downslide</title>
+<style>
+/* Reset css from http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+margin: 0;
+padding: 0;
+border: 0;
+font-size: 100%;
+font: inherit;
+vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+display: block;
+}
+body {
+line-height: 1;
+background-color: var(--color-bg);
+}
+ol, ul {
+list-style: none;
+}
+blockquote, q {
+quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+content: '';
+content: none;
+}
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
+/* end reset css */
+/* default css */
+:root {
+--color-bg: #F8FFE5;
+--color-fg: #04151F;
+--color-highlight: #6D72C3;
+--text-font: Georgia, serif;
+--title-font: Georgia, serif;
+--font-default-size: 2.6em;
+--color-highlight: #2E86AB;
+--slide-width: 1280px;
+--slide-height: 720px;
+--default-margin: 40px;
+}
+h1 {
+font-family: var(--title-font);
+font-size: 5em;
+margin-top: 0;
+margin-right: var(--default-margin);
+margin-bottom: .5em;
+margin-left: var(--default-margin);
+opacity: .6;
+}
+strong {
+font-weight: bold;
+}
+img {
+border-radius: 1em;
+margin-top: 0;
+margin-right: var(--default-margin);
+margin-bottom: var(--default-margin);
+margin-left: var(--default-margin);
+}
+p {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+line-height: 1.5em;
+margin: var(--default-margin);
+}
+a, a:visited {
+color: var(--color-highlight);
+}
+tbody {
+border-top: solid .3em var(--color-fg);
+border-bottom: solid .3em var(--color-fg);
+}
+th {
+font-weight: bold;
+}
+th, td {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+padding: .2em;
+}
+table {
+margin: var(--default-margin);
+}
+ul {
+list-style-type: disc;
+list-style-position: inside;
+margin: var(--default-margin);
+}
+li {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+line-height: 1.5em;
+list-style-position: outside;
+margin-left: 1em;
+}
+ul > li > ul {
+list-style-type: circle;
+}
+ul > li > ul > li {
+font-size: 1em;
+margin-left: 1.5em;
+}
+pre {
+color: var(--color-bg);
+background-color: var(--color-fg);
+border-radius: .5em;
+font-family: courier, monospace;
+margin: var(--default-margin);
+font-size: 1.8em;
+line-height: 1.2em;
+padding: 1em;
+}
+.slides-title {
+text-align: center;
+font-size: 8em;
+margin: var(--default-margin);
+text-transform: uppercase;
+}
+.slides-sub-title {
+text-align: center;
+font-size: var(--font-default-size);
+}
+.slide {
+/* Thanks for the div v and h centering: https://stackoverflow.com/a/14816807 */
+width: var(--slide-width);
+height: var(--slide-height);
+position: absolute;
+left: 0;
+right: 0;
+top: 0;
+bottom: 0;
+margin: auto;
+/*Solves a problem in which the content is being cut when the div is smaller than its' wrapper:*/
+max-width: 100%;
+max-height: 100%;
+overflow: auto;
+display: none;
+}
+#next-slide-forward, #next-slide-backward {
+width: 10%;
+height: 100%;
+position: absolute;
+top: 0;
+z-index: 10;
+}
+#next-slide-backward:hover {
+background-image: linear-gradient(to right, var(--color-fg), rgba(255,0,0,0));
+}
+#next-slide-forward:hover {
+background-image: linear-gradient(to left, var(--color-fg), rgba(255,0,0,0));
+}
+#next-slide-forward {
+right: 0;
+}
+#next-slide-backward {
+left: 0;
+}
+.full-width {
+width: var(--slide-width);
+margin: 0;
+}
+img.background {
+width: var(--slide-width);
+height: var(--slide-height);
+object-fit: cover;
+z-index: -1;
+position: absolute;
+left: 0;
+top: 0;
+margin: 0;
+}
+img.half-width, img.third-width {
+height: var(--slide-height);
+object-fit: cover;
+margin: 0;
+}
+img.half-width {
+width: 50%;
+}
+img.third-width {
+width: 33%;
+}
+.left {
+float: left;
+margin-right: 2em;
+}
+.right {
+float: right;
+margin-left: 2em;
+}
+</style>
+</head>
+<body>
+<div id=next-slide-forward></div>
+<div id=next-slide-backward></div>
+<div class="slide">
+<h1 class="slides-title">Slides with downslide</h1>
+<h2 class="slides-sub-title">By Oliver Fields</h2>
+<p style="text-align: center; background-color: var(--color-fg); color: var(--color-bg); border-radius: .5em;">Navigate with ⬅️ and ➡️ </p>
+
+</div><!-- /slide -->
+<div class="slide">
+<h1>Features</h1>
+<ul>
+<li>Markup slides using Markdown</li>
+<li>Key/values defined in optional front matter can be referenced in markdown</li>
+<li>Local images are embedded in slides (share one file)</li>
+</ul>
+<p>☝️ Slides made with downslide, see the <a href="https://github.com/oliverfields/downslide/example_slides.md">source</a></p>
+</div><!-- /slide -->
+<div class="slide">
+<h1>Basic CLI usage</h1>
+<pre>
+$ downslide slides.md
+$ ls
+slides.html  slides.md
+</pre>
+
+</div><!-- /slide -->
+<div class="slide">
+<h1>Navigating HTML slides</h1>
+<ul>
+<li>Next slide <strong>space, enter or right arrow</strong>, or click right side</li>
+<li>Previous slide <strong>backspace, left arrow</strong>, or click left side</li>
+</ul>
+</div><!-- /slide -->
+<div class="slide">
+<h1>Styling</h1>
+<p>Recommended starting point is to use the following command and edit <strong>style.css</strong> to taste.</p>
+<pre>
+$ downslide --dump-default-css > style.css
+</pre>
+
+<p>The following command generates slides with your new style.</p>
+<pre>
+$ downslide --css style.css slides.md
+</pre>
+
+</div><!-- /slide -->
+<div class="slide">
+<h1>Front matter key/values</h1>
+<p>The following markdown represents a single slide. The title will be <strong>Nice slide</strong>. Note that front matter key names are converted to lower case.</p>
+<pre>
+---
+title: Nice slide
+---
+
+# Slides with downslide
+
+A slide about slides
+</pre>
+
+</div><!-- /slide -->
+<div class="slide">
+<h1 style="font-size: 4em;">Embedding images</h1>
+<p>Any images that are referenced relatively in markdown will be automatically embedded in the slide HTML (base64).</p>
+<pre>
+$ cat my_beach_slides.md
+# Slide 1
+
+![Look at that beach](beach.jpg)
+$ ls
+beach.jpg
+my_beach_slides.md
+$ downslide my_beach_slides.md
+</pre></div><!-- /slide -->
+<script>
+// Set viewport
+window.onload = function() {
+  var slideWidth = document.getElementsByClassName('slide')[0].offsetWidth;
+  var scale = screen.width / slideWidth;
+  var viewport = document.createElement('meta');
+
+  viewport.setAttribute('name', 'viewport');
+  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale+'');
+  document.getElementsByTagName('head')[0].appendChild(viewport);
+}
+
+function nextSlide(direction) {
+  var nextSlideIndex = false;
+
+  if (direction == 'forward') {
+     nextSlideIndex = currentSlideIndex + 1;
+     if (nextSlideIndex == slides.length) nextSlideIndex = 0;
+  }
+  else if (direction == 'backward') {
+    nextSlideIndex = currentSlideIndex - 1;
+    if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
+  }
+
+  slides[currentSlideIndex].style.display = 'none';
+  slides[nextSlideIndex].style.display = 'block';
+  currentSlideIndex = nextSlideIndex;
+}
+
+
+function checkKey(e) {
+  e = e || window.event;
+
+  if (forwardKeys.includes(e.keyCode)) {
+     nextSlide('forward');
+  }
+
+  if (backwardKeys.includes(e.keyCode)) {
+     nextSlide('backward');
+  }
+}
+
+document.getElementById('next-slide-forward').addEventListener('click', e => {
+  nextSlide('forward');
+});
+
+document.getElementById('next-slide-backward').addEventListener('click', e => {
+  nextSlide('forward');
+});
+
+var slides = document.getElementsByClassName('slide');
+var currentSlideIndex = 0;
+
+var forwardKeys = [
+  39, // Right arrow
+  32, // Space
+  13  // Enter
+];
+
+var backwardKeys = [
+  37, // Left arrow
+  8   // Backspace
+];
+
+// Hide all slides
+Array.from(slides).forEach(
+  function(element, index, array) {
+    element.style.display = 'none';
+  }
+);
+
+window.addEventListener('keydown', checkKey);
+
+slides[currentSlideIndex].style.display = 'block';
+</script>
+</body>
+</html>

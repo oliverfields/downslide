@@ -1,0 +1,607 @@
+#!/bin/bash
+
+# Markdown 2 pdf slides
+
+set -e
+
+report_error() {
+  exit_code=$1
+  shift 1
+  echo -e "\e[31mError\e[0m: $*"
+  exit $exit_code
+}
+
+
+report_warning() {
+  echo -e "\e[33mWarning\e[0m: $*"
+}
+
+
+usage() {
+  echo -e "\e[1mdownslide\e[0m [-a|--auto-build] [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
+}
+
+help_msg() {
+  echo -e '
+Create HTML slides from markdown.
+
+https://github.com/oliverfields/downslide
+
+\e[1mArguments\e[0m
+
+    \e[1m-a, --auto-build\e[0m
+        Rebuild slides if directory containing <MARKDOWN_PATH> is changed
+
+    \e[1m-c. --css\e[0m <CSS_PATH>
+        Use CSS from file CSS_PATH in slides
+
+    \e[1m-d, --dump-default-css\e[0m
+        Dump default CSS, useful starting point for custom CSS theme
+
+    \e[1m-f, --force\e[0m
+        Overwrite any existing slides
+
+    \e[1m-o, --output\e[0m <OUTPUT_PATH>
+        Specify the Web/HTML slides file path, defaults to MARKDOWN_PATH with .html extension
+
+    \e[1m-h, --help\e[0m
+        This text.
+' | fmt
+}
+
+state_hash() {
+  ls -lR "$1" | md5sum
+}
+
+
+# Defaults
+src=""
+slides_path=""
+overwrite_slides="no"
+auto_build="no"
+css_path=""
+slides_title=""
+src_dir="$(dirname "$src")"
+declare -A front_matter
+default_css=$(cat <<CSSEOF
+/* Reset css from http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+margin: 0;
+padding: 0;
+border: 0;
+font-size: 100%;
+font: inherit;
+vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+display: block;
+}
+body {
+line-height: 1;
+background-color: var(--color-bg);
+}
+ol, ul {
+list-style: none;
+}
+blockquote, q {
+quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+content: '';
+content: none;
+}
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
+/* end reset css */
+/* default css */
+:root {
+--color-bg: #F8FFE5;
+--color-fg: #04151F;
+--color-highlight: #6D72C3;
+--text-font: Georgia, serif;
+--title-font: Georgia, serif;
+--font-default-size: 2.6em;
+--color-highlight: #2E86AB;
+--slide-width: 1280px;
+--slide-height: 720px;
+--default-margin: 40px;
+}
+h1 {
+font-family: var(--title-font);
+font-size: 5em;
+margin-top: 0;
+margin-right: var(--default-margin);
+margin-bottom: .5em;
+margin-left: var(--default-margin);
+opacity: .6;
+}
+strong {
+font-weight: bold;
+}
+img {
+border-radius: 1em;
+margin-top: 0;
+margin-right: var(--default-margin);
+margin-bottom: var(--default-margin);
+margin-left: var(--default-margin);
+}
+p {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+line-height: 1.5em;
+margin: var(--default-margin);
+}
+a, a:visited {
+color: var(--color-highlight);
+}
+tbody {
+border-top: solid .3em var(--color-fg);
+border-bottom: solid .3em var(--color-fg);
+}
+th {
+font-weight: bold;
+}
+th, td {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+padding: .2em;
+}
+table {
+margin: var(--default-margin);
+}
+ul {
+list-style-type: disc;
+list-style-position: inside;
+margin: var(--default-margin);
+}
+li {
+font-size: var(--font-default-size);
+font-family: var(--text-font);
+line-height: 1.5em;
+list-style-position: outside;
+margin-left: 1em;
+}
+ul > li > ul {
+list-style-type: circle;
+}
+ul > li > ul > li {
+font-size: 1em;
+margin-left: 1.5em;
+}
+pre {
+color: var(--color-bg);
+background-color: var(--color-fg);
+border-radius: .5em;
+font-family: courier, monospace;
+margin: var(--default-margin);
+font-size: 1.8em;
+line-height: 1.2em;
+padding: 1em;
+}
+.slides-title {
+text-align: center;
+font-size: 8em;
+margin: var(--default-margin);
+text-transform: uppercase;
+}
+.slides-sub-title {
+text-align: center;
+font-size: var(--font-default-size);
+}
+.slide {
+/* Thanks for the div v and h centering: https://stackoverflow.com/a/14816807 */
+width: var(--slide-width);
+height: var(--slide-height);
+position: absolute;
+left: 0;
+right: 0;
+top: 0;
+bottom: 0;
+margin: auto;
+/*Solves a problem in which the content is being cut when the div is smaller than its' wrapper:*/
+max-width: 100%;
+max-height: 100%;
+overflow: auto;
+display: none;
+}
+#next-slide-forward, #next-slide-backward {
+width: 10%;
+height: 100%;
+position: absolute;
+top: 0;
+z-index: 10;
+}
+#next-slide-backward:hover {
+background-image: linear-gradient(to right, var(--color-fg), rgba(255,0,0,0));
+}
+#next-slide-forward:hover {
+background-image: linear-gradient(to left, var(--color-fg), rgba(255,0,0,0));
+}
+#next-slide-forward {
+right: 0;
+}
+#next-slide-backward {
+left: 0;
+}
+.full-width {
+width: var(--slide-width);
+margin: 0;
+}
+img.background {
+width: var(--slide-width);
+height: var(--slide-height);
+object-fit: cover;
+z-index: -1;
+position: absolute;
+left: 0;
+top: 0;
+margin: 0;
+}
+img.half-width, img.third-width {
+height: var(--slide-height);
+object-fit: cover;
+margin: 0;
+}
+img.half-width {
+width: 50%;
+}
+img.third-width {
+width: 33%;
+}
+.left {
+float: left;
+margin-right: 2em;
+}
+.right {
+float: right;
+margin-left: 2em;
+}
+CSSEOF
+)
+
+
+# Set arguments
+args=$(getopt -l "output: css: force auto-build dump-default-css" -o "o:c:fad" -- "$@")
+
+eval set -- "$args"
+
+while [ $# -ge 1 ]; do
+  case $1 in
+    --)
+      # No more args
+      shift
+      break
+    ;;
+    -o|--output)
+      [ -z "$2" ] || report_error 1 "Missing value for argument -o|--output"
+      slides_path="$2"
+      shift
+    ;;
+    -c|--css)
+      [ -z "$2" ] || report_error 1 "Missing value for argument -c|--css"
+      css_path="$2"
+      shift
+    ;;
+    -f|--force)
+      overwrite_slides='yes'
+    ;;
+    -a|--auto-build)
+      auto_build='yes'
+    ;;
+    -d|--dump-default-css)
+      echo "$default_css"
+      exit 0
+    ;;
+    -h|--help)
+      usage
+      help_msg
+      exit 0
+    ;;
+  esac
+
+  shift
+
+done
+
+src="$1"
+
+#echo o $slides_path
+#echo c $css_path
+#echo f $overwrite_slides
+#echo a $auto_build
+#echo src $src
+#
+#exit 10
+
+[ "$src" = "" ] && usage && exit 0
+
+[ -f "$src" ] || report_error 1 "File not found: $src"
+
+
+# Read frontmatter
+first_line='yes'
+is_front_matter='no'
+while read -r line; do
+  if [ "$first_line" = "yes" ]; then
+    # There is front matter
+    if [ "$line" = "---" ]; then
+      first_line='no'
+      is_front_matter='yes'
+      continue
+    else
+      # There is no front matter
+      break
+    fi
+  elif [ "$is_front_matter" = 'yes' ]; then
+    # End of front matter
+    if [ "$line" = '---' ]; then
+      break
+    else
+      fm_key="${line%:*}"
+      fm_value="${line#*:}"
+
+      # Trim any spaces
+      fm_key="${fm_key#\ *}"
+      fm_key="${fm_key%*\ }"
+      fm_key="${fm_key,,}" # Lower case
+      fm_value="${fm_value#\ *}"
+      fm_value="${fm_value%*\ }"
+
+      if [[ -v "front_matter[$fm_key]" ]]; then
+        report_warning "Front matter key '$fm_key' already defined"
+      else
+        front_matter["$fm_key"]="$fm_value"
+      fi
+    fi
+  fi
+done <<<"$(cat "$src")"
+
+if [[ -v "front_matter[title]" ]]; then
+  slides_title="${front_matter['title']}"
+else
+  slides_title="$(basename "$src")"
+  slides_title="${slides_title%.*}"
+fi
+
+if [ "$slides_path" = "" ]; then
+  tgt_name="$(basename "$src")"
+  tgt_name="${tgt_name%.*}"
+  slides_path="$tgt_name.html"
+fi
+
+if [ "$css_path" != "" ]; then
+  [ -f "$css_path" ] || report_warning "CSS not found: $css_path"
+fi
+
+if [ "$overwrite_slides" = 'no' ]; then
+  [ -f "$slides_path" ] && report_error 1 "File already exists: $slides_path"
+fi
+
+[ "$auto_build" = "yes" ] && state="$(state_hash "$src_dir")"
+
+
+while true; do
+  # Generate slides html
+
+  if [ "$auto_build" = "yes" ]; then
+    if [ "$new_state" = "$state" ]; then
+      new_state="$(state_hash "$src_dir")"
+      sleep 1
+      continue
+    fi
+  fi
+
+  {
+    echo "<!DOCTYPE html>
+<html>
+<head>
+<link rel=\"shortcut icon\" href=\"favicon.png\">
+<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
+
+    if [[ -v "front_matter[author]" ]]; then
+      echo "<meta name=\"author\" content=\"${front_matter['author']}\">"
+    fi
+
+    if [[ -v "front_matter[description]" ]]; then
+      echo "<meta name=\"description\" content=\"${front_matter['description']}\">"
+    fi
+
+    echo "<title>$slides_title</title>
+<style>"
+
+    if [ -f "$css_path" ]; then
+      cat "$css_path"
+    else
+      echo "$default_css"
+    fi
+
+    echo "</style>
+</head>
+<body>
+<div id="next-slide-forward"></div>
+<div id="next-slide-backward"></div>"
+
+
+    echo '<div class="slide">'
+
+    # Strip any front matter and convert markdown to html
+    first_line=''
+    cat "$src" | while read -r line; do
+      # Is there front matter?
+      if [ "$first_line" = "" ]; then
+        first_line='no'
+        if [ "$line" = "---" ]; then
+          is_front_matter='yes'
+          continue
+        else
+          is_front_matter='no'
+        fi
+      fi
+
+      # Are we in front matter?
+      if [ "$is_front_matter" = 'yes' ]; then
+        if [ "$line" = '---' ]; then
+          is_front_matter='no'
+        fi
+        continue
+      else
+        echo "$line"
+      fi
+    done \
+    | python3 -m markdown -x attr_list -x tables \
+    | sed 's#^<hr\ />$#</div><!-- /slide -->\n<div class="slide"># ; s#<p>\(<img\ [^>]*>\)</p>#\1#g'
+
+    echo "</div><!-- /slide -->"
+
+    echo "<script>
+// Set viewport
+window.onload = function() {
+  var slideWidth = document.getElementsByClassName('slide')[0].offsetWidth;
+  var scale = screen.width / slideWidth;
+  var viewport = document.createElement('meta');
+
+  viewport.setAttribute('name', 'viewport');
+  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale+'');
+  document.getElementsByTagName('head')[0].appendChild(viewport);
+}
+
+function nextSlide(direction) {
+  var nextSlideIndex = false;
+
+  if (direction == 'forward') {
+     nextSlideIndex = currentSlideIndex + 1;
+     if (nextSlideIndex == slides.length) nextSlideIndex = 0;
+  }
+  else if (direction == 'backward') {
+    nextSlideIndex = currentSlideIndex - 1;
+    if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
+  }
+
+  slides[currentSlideIndex].style.display = 'none';
+  slides[nextSlideIndex].style.display = 'block';
+  currentSlideIndex = nextSlideIndex;
+}
+
+
+function checkKey(e) {
+  e = e || window.event;
+
+  if (forwardKeys.includes(e.keyCode)) {
+     nextSlide('forward');
+  }
+
+  if (backwardKeys.includes(e.keyCode)) {
+     nextSlide('backward');
+  }
+}
+
+document.getElementById('next-slide-forward').addEventListener('click', e => {
+  nextSlide('forward');
+});
+
+document.getElementById('next-slide-backward').addEventListener('click', e => {
+  nextSlide('forward');
+});
+
+var slides = document.getElementsByClassName('slide');
+var currentSlideIndex = 0;
+
+var forwardKeys = [
+  39, // Right arrow
+  32, // Space
+  13  // Enter
+];
+
+var backwardKeys = [
+  37, // Left arrow
+  8   // Backspace
+];
+
+// Hide all slides
+Array.from(slides).forEach(
+  function(element, index, array) {
+    element.style.display = 'none';
+  }
+);
+
+window.addEventListener('keydown', checkKey);
+
+slides[currentSlideIndex].style.display = 'block';
+</script>
+</body>
+</html>"
+
+  } > "$slides_path"
+
+  # Embed local images in html
+  find "$src_dir" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' \) \
+  | sed 's/^\.\///' \
+  | while read -r img; do
+    # Check slides contain image
+    grep -q 'src="'$img'"' "$slides_path" || continue
+
+    img_ext="${img##*.}"
+    img_ext="${img_ext,,}" # lower case
+    img_b64="$(base64 --wrap=0 "$img")"
+
+    sed -i -f - "$slides_path" << EOF
+  s#src="${img}"#src="data:image/${img_ext};charset=utf-8;base64, ${img_b64}"#g
+EOF
+  done
+
+  # Embed favicon
+  # TODO allow favicons with different name or extensions
+  if grep -q 'rel="shortcut icon"' "$slides_path"; then
+    favicon="favicon.png"
+    if [ -f "$src_dir/$favicon" ]; then
+      b64="$(base64 --wrap=0 "$favicon")"
+
+    sed -i -f - "$slides_path" << EOF
+  s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
+EOF
+    fi
+  fi
+
+  # Update any front matter key values in html
+  for key in "${!front_matter[@]}"; do
+    sed_regexp="$sed_regexp;s%\${$key}%${front_matter[$key]}%g"
+  done
+  sed_regexp="${sed_regexp#;}"
+  sed -i "$sed_regexp" "$slides_path"
+
+  if [ "$auto_build" != "yes" ]; then
+    break
+  else
+    if [ "$new_state" = "" ]; then
+      new_state="$(state_hash "$src_dir")"
+    fi
+
+    if [ "$new_state" != "$state" ]; then
+      ts="$(date '+%Y-%m-%m %H:%M:%S')"
+      echo "$ts Refreshed $slides_path"
+      new_state="$(state_hash "$src_dir")"
+      state="$new_state"
+    fi
+  fi
+done
+
