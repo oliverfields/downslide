@@ -17,7 +17,7 @@ title: Slides with downslide
 - Key/values defined in optional front matter can be referenced in markdown
 - Local images are embedded in slides (share one file)
 
-☝️ Slides made with downslide, see the [source](https://oliverfields.github.io/downslide/example_slides.md).
+☝️ Slides made with downslide, see the [markdown](https://github.com/oliverfields/downslide/blob/main/example_slides.md?plain=1).
 
 ---
 
