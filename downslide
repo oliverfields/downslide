@@ -230,6 +230,7 @@ height: 100%;
 position: absolute;
 top: 0;
 z-index: 10;
+cursor: pointer;
 }
 #next-slide-backward:hover {
 background-image: linear-gradient(to right, var(--color-fg), rgba(255,0,0,0));
@@ -565,7 +566,7 @@ slides[currentSlideIndex].style.display = 'block';
     img_b64="$(base64 --wrap=0 "$img")"
 
     sed -i -f - "$slides_path" << EOF
-  s#src="${img}"#src="data:image/${img_ext};charset=utf-8;base64, ${img_b64}"#g
+s#src="${img}"#src="data:image/${img_ext};charset=utf-8;base64, ${img_b64}"#g
 EOF
   done
 
@@ -576,8 +577,8 @@ EOF
     if [ -f "$src_dir/$favicon" ]; then
       b64="$(base64 --wrap=0 "$favicon")"
 
-    sed -i -f - "$slides_path" << EOF
-  s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
+      sed -i -f - "$slides_path" << EOF
+s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
 EOF
     fi
   fi
