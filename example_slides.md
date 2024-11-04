@@ -64,7 +64,7 @@ The following markdown represents a single slide. The title will be **Nice slide
 title: Nice slide
 --- 
 
-# ${title}
+# &dollar;{title}
 
 A slide about slides
 </pre>
