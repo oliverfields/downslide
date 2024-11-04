@@ -2,5 +2,5 @@
 
 Create HTML slides from markdown.
 
-Readme [slides](https://github.com/oliverfields/downslide/blob/main/example_slides.html).
+Readme [slides](https://oliverfields.github.io/downslide/example_slides.html).
 
