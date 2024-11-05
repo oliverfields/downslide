@@ -18,7 +18,7 @@ report_warning() {
 
 
 usage() {
-  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
+  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
 }
 
 help_msg() {
@@ -38,6 +38,9 @@ https://github.com/oliverfields/downslide
     \e[1m-f, --force\e[0m
         Overwrite any existing slides
 
+    \e[1m-l, --live-rebuild\e[0m
+        Rebuild html when md is changed
+
     \e[1m-o, --output\e[0m <OUTPUT_PATH>
         Specify the Web/HTML slides file path, defaults to MARKDOWN_PATH with .html extension
 
@@ -51,9 +54,11 @@ https://github.com/oliverfields/downslide
 src=""
 slides_path=""
 overwrite_slides="no"
+live_rebuild="no"
 css_path=""
 slides_title=""
 src_dir="$(dirname "$src")"
+original_args="$@"
 declare -A front_matter
 default_css=$(cat <<CSSEOF
 /* Reset css from http://meyerweb.com/eric/tools/css/reset/ 
@@ -274,7 +279,7 @@ CSSEOF
 
 
 # Set arguments
-args=$(getopt -l "output: css: force dump-default-css" -o "o:c:fd" -- "$@")
+args=$(getopt -l "output: css: force dump-default-css live-reload help" -o "o:c:fdlh" -- "$@")
 
 eval set -- "$args"
 
@@ -286,17 +291,20 @@ while [ $# -ge 1 ]; do
       break
     ;;
     -o|--output)
-      [ -z "$2" ] || report_error 1 "Missing value for argument -o|--output"
+      [ -z "$2" ] && report_error 1 "Missing value for argument -o|--output"
       slides_path="$2"
       shift
     ;;
     -c|--css)
-      [ -z "$2" ] || report_error 1 "Missing value for argument -c|--css"
+      [ -z "$2" ] && report_error 1 "Missing value for argument -c|--css"
       css_path="$2"
       shift
     ;;
     -f|--force)
       overwrite_slides='yes'
+    ;;
+    -l|--live-reload)
+      live_rebuild='yes'
     ;;
     -d|--dump-default-css)
       echo "$default_css"
@@ -380,72 +388,70 @@ if [ "$overwrite_slides" = 'no' ]; then
 fi
 
 
-while true; do
-  # Generate slides html
+# Generate slides html
 
-  {
-    echo "<!DOCTYPE html>
+{
+  echo "<!DOCTYPE html>
 <html>
 <head>
 <link rel=\"shortcut icon\" href=\"favicon.png\">
 <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
 
-    if [[ -v "front_matter[author]" ]]; then
-      echo "<meta name=\"author\" content=\"${front_matter['author']}\">"
-    fi
+  if [[ -v "front_matter[author]" ]]; then
+    echo "<meta name=\"author\" content=\"${front_matter['author']}\">"
+  fi
 
-    if [[ -v "front_matter[description]" ]]; then
-      echo "<meta name=\"description\" content=\"${front_matter['description']}\">"
-    fi
+  if [[ -v "front_matter[description]" ]]; then
+    echo "<meta name=\"description\" content=\"${front_matter['description']}\">"
+  fi
 
-    echo "<title>$slides_title</title>
+  echo "<title>$slides_title</title>
 <style>"
 
-    if [ -f "$css_path" ]; then
-      cat "$css_path"
-    else
-      echo "$default_css"
-    fi
+  if [ -f "$css_path" ]; then
+    cat "$css_path"
+  else
+    echo "$default_css"
+  fi
 
-    echo "</style>
+  echo "</style>
 </head>
 <body>
 <div id="next-slide-forward"></div>
 <div id="next-slide-backward"></div>"
 
+  echo '<div class="slide">'
 
-    echo '<div class="slide">'
-
-    # Strip any front matter and convert markdown to html
-    first_line=''
-    cat "$src" | while read -r line; do
-      # Is there front matter?
-      if [ "$first_line" = "" ]; then
-        first_line='no'
-        if [ "$line" = "---" ]; then
-          is_front_matter='yes'
-          continue
-        else
-          is_front_matter='no'
-        fi
-      fi
-
-      # Are we in front matter?
-      if [ "$is_front_matter" = 'yes' ]; then
-        if [ "$line" = '---' ]; then
-          is_front_matter='no'
-        fi
+  # Strip any front matter and convert markdown to html
+  first_line=''
+  cat "$src" | while read -r line; do
+    # Is there front matter?
+    if [ "$first_line" = "" ]; then
+      first_line='no'
+      if [ "$line" = "---" ]; then
+        is_front_matter='yes'
         continue
       else
-        echo "$line"
+        is_front_matter='no'
       fi
-    done \
-    | python3 -m markdown -x attr_list -x tables \
-    | sed 's#^<hr\ />$#</div><!-- /slide -->\n<div class="slide"># ; s#<p>\(<img\ [^>]*>\)</p>#\1#g'
+    fi
 
-    echo "</div><!-- /slide -->"
+    # Are we in front matter?
+    if [ "$is_front_matter" = 'yes' ]; then
+      if [ "$line" = '---' ]; then
+        is_front_matter='no'
+      fi
+      continue
+    else
+      echo "$line"
+    fi
+  done \
+  | python3 -m markdown -x attr_list -x tables \
+  | sed 's#^<hr\ />$#</div><!-- /slide -->\n<div class="slide"># ; s#<p>\(<img\ [^>]*>\)</p>#\1#g'
 
-    echo "<script>
+  echo "</div><!-- /slide -->"
+
+  echo "<script>
 // Set viewport
 window.onload = function() {
   var slideWidth = document.getElementsByClassName('slide')[0].offsetWidth;
@@ -523,43 +529,60 @@ slides[currentSlideIndex].style.display = 'block';
 </body>
 </html>"
 
-  } > "$slides_path"
+} > "$slides_path"
 
-  # Embed local images in html
-  find "$src_dir" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' \) \
-  | sed 's/^\.\///' \
-  | while read -r img; do
-    # Check slides contain image
-    grep -q 'src="'$img'"' "$slides_path" || continue
+# Embed local images in html
+find "$src_dir" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' \) \
+| sed 's/^\.\///' \
+| while read -r img; do
+  # Check slides contain image
+  grep -q 'src="'$img'"' "$slides_path" || continue
 
-    img_ext="${img##*.}"
-    img_ext="${img_ext,,}" # lower case
-    img_b64="$(base64 --wrap=0 "$img")"
+  img_ext="${img##*.}"
+  img_ext="${img_ext,,}" # lower case
+  img_b64="$(base64 --wrap=0 "$img")"
 
-    sed -i -f - "$slides_path" << EOF
+  sed -i -f - "$slides_path" << EOF
 s#src="${img}"#src="data:image/${img_ext};charset=utf-8;base64, ${img_b64}"#g
 EOF
-  done
-
-  # Embed favicon
-  # TODO allow favicons with different name or extensions
-  if grep -q 'rel="shortcut icon"' "$slides_path"; then
-    favicon="favicon.png"
-    if [ -f "$src_dir/$favicon" ]; then
-      b64="$(base64 --wrap=0 "$favicon")"
-
-      sed -i -f - "$slides_path" << EOF
-s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
-EOF
-    fi
-  fi
-
-  # Update any front matter key values in html
-  for key in "${!front_matter[@]}"; do
-    sed_regexp="$sed_regexp;s%\${$key}%${front_matter[$key]}%g"
-  done
-  sed_regexp="${sed_regexp#;}"
-  sed -i "$sed_regexp" "$slides_path"
-
 done
 
+# Embed favicon
+# TODO allow favicons with different name or extensions
+if grep -q 'rel="shortcut icon"' "$slides_path"; then
+  favicon="favicon.png"
+  if [ -f "$src_dir/$favicon" ]; then
+    b64="$(base64 --wrap=0 "$favicon")"
+
+    sed -i -f - "$slides_path" << EOF
+s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
+EOF
+  fi
+fi
+
+# Update any front matter key values in html
+for key in "${!front_matter[@]}"; do
+  sed_regexp="$sed_regexp;s%\${$key}%${front_matter[$key]}%g"
+done
+sed_regexp="${sed_regexp#;}"
+sed -i "$sed_regexp" "$slides_path"
+
+
+if [ "$live_rebuild" = "yes" ]; then
+  # Create downslide command
+  cmd="$0 --force"
+  [ -f "$slides_path" ] && cmd="$cmd --output '$slides_path'"
+  [ -f "$css_path" ] && cmd="$cmd --css '$css_path'"
+  cmd="$cmd '$src'"
+  src_dir="$(dirname "$src")"
+
+  echo "Watching $src for changes.. Ctrl+C to quit"
+
+  # Need to watch entire directory to handle editors like vim that actually delete the write first to a tmp file and then overwrite the original file with the tmp file. Watching the original file will fail
+  inotifywait --quiet --monitor --recursive --event close_write --format "%f" "$src_dir" \
+  | while read -r change; do
+    if [ "$src" = "$change" ]; then
+      eval "$cmd" && echo "$(date +%T) Rebuilt $slides_path"
+    fi
+  done
+fi
