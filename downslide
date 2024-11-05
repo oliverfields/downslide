@@ -18,7 +18,7 @@ report_warning() {
 
 
 usage() {
-  echo -e "\e[1mdownslide\e[0m [-a|--auto-build] [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
+  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
 }
 
 help_msg() {
@@ -28,9 +28,6 @@ Create HTML slides from markdown.
 https://github.com/oliverfields/downslide
 
 \e[1mArguments\e[0m
-
-    \e[1m-a, --auto-build\e[0m
-        Rebuild slides if directory containing <MARKDOWN_PATH> is changed
 
     \e[1m-c. --css\e[0m <CSS_PATH>
         Use CSS from file CSS_PATH in slides
@@ -49,16 +46,11 @@ https://github.com/oliverfields/downslide
 ' | fmt
 }
 
-state_hash() {
-  ls -lR "$1" | md5sum
-}
-
 
 # Defaults
 src=""
 slides_path=""
 overwrite_slides="no"
-auto_build="no"
 css_path=""
 slides_title=""
 src_dir="$(dirname "$src")"
@@ -282,7 +274,7 @@ CSSEOF
 
 
 # Set arguments
-args=$(getopt -l "output: css: force auto-build dump-default-css" -o "o:c:fad" -- "$@")
+args=$(getopt -l "output: css: force dump-default-css" -o "o:c:fd" -- "$@")
 
 eval set -- "$args"
 
@@ -306,9 +298,6 @@ while [ $# -ge 1 ]; do
     -f|--force)
       overwrite_slides='yes'
     ;;
-    -a|--auto-build)
-      auto_build='yes'
-    ;;
     -d|--dump-default-css)
       echo "$default_css"
       exit 0
@@ -325,14 +314,6 @@ while [ $# -ge 1 ]; do
 done
 
 src="$1"
-
-#echo o $slides_path
-#echo c $css_path
-#echo f $overwrite_slides
-#echo a $auto_build
-#echo src $src
-#
-#exit 10
 
 [ "$src" = "" ] && usage && exit 0
 
@@ -398,19 +379,9 @@ if [ "$overwrite_slides" = 'no' ]; then
   [ -f "$slides_path" ] && report_error 1 "File already exists: $slides_path"
 fi
 
-[ "$auto_build" = "yes" ] && state="$(state_hash "$src_dir")"
-
 
 while true; do
   # Generate slides html
-
-  if [ "$auto_build" = "yes" ]; then
-    if [ "$new_state" = "$state" ]; then
-      new_state="$(state_hash "$src_dir")"
-      sleep 1
-      continue
-    fi
-  fi
 
   {
     echo "<!DOCTYPE html>
@@ -590,19 +561,5 @@ EOF
   sed_regexp="${sed_regexp#;}"
   sed -i "$sed_regexp" "$slides_path"
 
-  if [ "$auto_build" != "yes" ]; then
-    break
-  else
-    if [ "$new_state" = "" ]; then
-      new_state="$(state_hash "$src_dir")"
-    fi
-
-    if [ "$new_state" != "$state" ]; then
-      ts="$(date '+%Y-%m-%m %H:%M:%S')"
-      echo "$ts Refreshed $slides_path"
-      new_state="$(state_hash "$src_dir")"
-      state="$new_state"
-    fi
-  fi
 done
 
