@@ -7,7 +7,7 @@ title: Slides with downslide
 
 ## By ${author} {: .slides-sub-title }
 
-<p style="text-align: center; background-color: var(--color-fg); color: var(--color-bg); border-radius: .5em;">Navigate with ⬅️ and ➡️ </p>
+<p style="text-align: center; background-color: var(--color-fg); color: var(--color-bg); border-radius: .5em;">Navigate with ⬅️ , ➡️ or click</p>
 
 ---
 
@@ -16,6 +16,7 @@ title: Slides with downslide
 - Markup slides using Markdown
 - Key/values defined in optional front matter can be referenced in markdown
 - Local images are embedded in slides (share one file)
+- Live rebuilding
 
 ☝️ Slides made with downslide, see the [markdown](https://github.com/oliverfields/downslide/blob/main/example_slides.md?plain=1).
 
