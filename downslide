@@ -221,26 +221,6 @@ max-height: 100%;
 overflow: auto;
 display: none;
 }
-#next-slide-forward, #next-slide-backward {
-width: 10%;
-height: 100%;
-position: absolute;
-top: 0;
-z-index: 10;
-cursor: pointer;
-}
-#next-slide-backward:hover {
-background-image: linear-gradient(to right, var(--color-fg), rgba(255,0,0,0));
-}
-#next-slide-forward:hover {
-background-image: linear-gradient(to left, var(--color-fg), rgba(255,0,0,0));
-}
-#next-slide-forward {
-right: 0;
-}
-#next-slide-backward {
-left: 0;
-}
 .full-width {
 width: var(--slide-width);
 margin: 0;
@@ -416,9 +396,7 @@ fi
 
   echo "</style>
 </head>
-<body>
-<div id="next-slide-forward"></div>
-<div id="next-slide-backward"></div>"
+<body>"
 
   echo '<div class="slide">'
 
@@ -493,13 +471,13 @@ function checkKey(e) {
   }
 }
 
-document.getElementById('next-slide-forward').addEventListener('click', e => {
-  nextSlide('forward');
-});
+// Change slides on click
+document.addEventListener('mouseup', e => {
+  // Ignore clicks on links
+  if (e.target.tagName == 'A') return;
 
-document.getElementById('next-slide-backward').addEventListener('click', e => {
   nextSlide('forward');
-});
+})
 
 var slides = document.getElementsByClassName('slide');
 var currentSlideIndex = 0;
