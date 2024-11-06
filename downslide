@@ -672,7 +672,7 @@ if [ "$live_rebuild" = "yes" ]; then
   # Need to watch entire directory to handle editors like vim that actually delete the write first to a tmp file and then overwrite the original file with the tmp file. Watching the original file will fail
   inotifywait --quiet --monitor --recursive --event close_write --format "%f" "$src_dir" \
   | while read -r change; do
-    if [ "$src" = "$change" ]; then
+    if [ "$src" = "$change" ] || [ "$css_path" = "$change" ] ; then
       eval "$cmd" && echo "$(date +%T) Rebuilt $slides_path"
     fi
   done
