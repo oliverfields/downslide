@@ -21,6 +21,7 @@ usage() {
   echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
 }
 
+
 help_msg() {
   echo -e '
 Create HTML slides from markdown.
@@ -78,6 +79,15 @@ title       <file name> Value for <title> HTML tag
         This text.
 
 ' | fmt
+}
+
+
+extract_attr_class_names() {
+  class_names=""
+  for c in $@; do
+    [ "${c:0:1}" = "." ] && class_names="$class_names ${c#.}"
+  done
+  echo "${class_names}"
 }
 
 
@@ -458,8 +468,6 @@ fi
 </head>
 <body>"
 
-  echo '<div class="slide">'
-
   # Strip any front matter and convert markdown to html
   first_line=''
   cat "$src" | while read -r line; do
@@ -485,7 +493,37 @@ fi
     fi
   done \
   | python3 -m markdown -x attr_list -x tables \
-  | sed 's#^<hr\ />$#</div><!-- /slide -->\n<div class="slide"># ; s#<p>\(<img\ [^>]*>\)</p>#\1#g'
+  | sed 's#<p>\(<img\ [^>]*>\)</p>#\1#g' \
+  | while read -r line || [ -n "$line" ]; do # the -n bit adds new line so last line is picked up, the while loop addes divs to each slide
+
+    if [ "${line:0:8}" = "<p>---{:" ]; then
+      is_slide_class_line='yes'
+      class_names="$(extract_attr_class_names "$line")"
+    else
+      is_slide_class_line='no'
+      class_names=""
+    fi
+
+    # Need to write slide start div for first line
+    if [ "$passed_first_line" = "" ]; then
+      passed_first_line='yes'
+      echo "<div class=\"slide$class_names\">"
+
+      if [ "$is_slide_class_line" = "no" ]; then
+        echo "$line"
+      fi
+      continue
+    fi
+
+    # All slides except the first
+    if [[ "$is_slide_class_line" = "yes" || "$line" = "<hr />" ]]; then
+      echo "</div><!-- /slide -->
+<div class=\"slide$class_names\">"
+    else
+      echo "$line"
+    fi
+
+  done
 
   echo "</div><!-- /slide -->"
 
