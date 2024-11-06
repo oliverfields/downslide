@@ -18,7 +18,7 @@ report_warning() {
 
 
 usage() {
-  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-default-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
+  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
 }
 
 help_msg() {
@@ -27,12 +27,42 @@ Create HTML slides from markdown.
 
 https://github.com/oliverfields/downslide
 
+
+\e[1mMarkdown\e[0m
+
+Slides are formatted with Python-Markdown, an implementation of John Gruber’s Markdown. Slides are separated with lines containing only three dashes (---).
+
+
+\e[1mFront matter\e[0m
+
+Slides may be configured using front matter. Front matter is declared by the first line being three dashes followed by lines containing key value pairs and finally a line containing three dashes.
+
+    \e[1mExample front matter\e[0m
+
+        ---
+        key1: value1
+        keyN: valueN
+        ---
+        <markdown>
+
+All key values can be referenced in the markdown or css files as ${key} and will be replaced with the value.
+
+Downslide reserves the following key/values for specific purposes:
+
+NAME        DEFAULT     DESCRIPTION
+css         <none>      Path to CSS
+description <none>      Value for <meta> description HTML tag
+loop        yes         If no, loop to first slide after last slide
+output      <none>      Path to output slide HTML file
+title       <file name> Value for <title> HTML tag
+
+
 \e[1mArguments\e[0m
 
     \e[1m-c. --css\e[0m <CSS_PATH>
         Use CSS from file CSS_PATH in slides
 
-    \e[1m-d, --dump-default-css\e[0m
+    \e[1m-d, --dump-css\e[0m
         Dump default CSS, useful starting point for custom CSS theme
 
     \e[1m-f, --force\e[0m
@@ -46,6 +76,7 @@ https://github.com/oliverfields/downslide
 
     \e[1m-h, --help\e[0m
         This text.
+
 ' | fmt
 }
 
@@ -57,7 +88,6 @@ overwrite_slides="no"
 live_rebuild="no"
 css_path=""
 slides_title=""
-src_dir="$(dirname "$src")"
 original_args="$@"
 declare -A front_matter
 default_css=$(cat <<CSSEOF
@@ -257,56 +287,27 @@ margin-left: 2em;
 CSSEOF
 )
 
-
-# Set arguments
-args=$(getopt -l "output: css: force dump-default-css live-reload help" -o "o:c:fdlh" -- "$@")
-
-eval set -- "$args"
-
-while [ $# -ge 1 ]; do
-  case $1 in
-    --)
-      # No more args
-      shift
-      break
-    ;;
-    -o|--output)
-      [ -z "$2" ] && report_error 1 "Missing value for argument -o|--output"
-      slides_path="$2"
-      shift
-    ;;
-    -c|--css)
-      [ -z "$2" ] && report_error 1 "Missing value for argument -c|--css"
-      css_path="$2"
-      shift
-    ;;
-    -f|--force)
-      overwrite_slides='yes'
-    ;;
-    -l|--live-reload)
-      live_rebuild='yes'
-    ;;
-    -d|--dump-default-css)
-      echo "$default_css"
-      exit 0
-    ;;
-    -h|--help)
-      usage
-      help_msg
-      exit 0
-    ;;
-  esac
-
-  shift
-
-done
-
-src="$1"
+# for implicitly loops over the arguments, this effectivly captures value of last argument
+for src; do true; done
 
 [ "$src" = "" ] && usage && exit 0
 
-[ -f "$src" ] || report_error 1 "File not found: $src"
+case $src in
+  -h|--help)
+    usage
+    help_msg
+    exit 0
+  ;;
+  -d|--dump-css)
+    echo "$default_css"
+    exit 0
+  ;;
+  *)
+    [ -f "$src" ] || report_error 1 "File not found: $src"
+  ;;
+esac
 
+src_dir="$(dirname "$src")"
 
 # Read frontmatter
 first_line='yes'
@@ -353,6 +354,70 @@ else
   slides_title="${slides_title%.*}"
 fi
 
+if [[ -v "front_matter[output]" ]]; then
+  slides_path="${front_matter['output']}"
+fi
+
+if [[ -v "front_matter[css]" ]]; then
+  css_path="${front_matter['css']}"
+fi
+
+# Set arguments
+args=$(getopt -l "output: css: force dump-default-css live-reload help" -o "o:c:fdlh" -- "$@")
+
+eval set -- "$args"
+
+while [ $# -ge 1 ]; do
+  case $1 in
+    --)
+      # No more args
+      shift
+      break
+    ;;
+    -o|--output)
+      [ -z "$2" ] && report_error 1 "Missing value for argument -o|--output"
+      slides_path="$2"
+      shift
+    ;;
+    -c|--css)
+      [ -z "$2" ] && report_error 1 "Missing value for argument -c|--css"
+      css_path="$2"
+      shift
+    ;;
+    -f|--force)
+      overwrite_slides='yes'
+    ;;
+    -l|--live-reload)
+      live_rebuild='yes'
+    ;;
+    -d|--dump-css)
+      echo "$default_css"
+      exit 0
+    ;;
+    -h|--help)
+      usage
+      help_msg
+      exit 0
+    ;;
+  esac
+
+  shift
+
+done
+
+#echo src=$src
+#echo slides_path=$slides_path
+#echo overwrite_slides=$overwrite_slides
+#echo live_rebuild=$live_rebuild
+#echo css_path=$css_path
+#echo slides_title=$slides_title
+#echo loop=${front_matter['loop']}
+#echo description=${front_matter['description']}
+
+if [ "$overwrite_slides" = 'no' ]; then
+  [ -f "$slides_path" ] && report_error 1 "File already exists: $slides_path"
+fi
+
 if [ "$slides_path" = "" ]; then
   tgt_name="$(basename "$src")"
   tgt_name="${tgt_name%.*}"
@@ -360,13 +425,8 @@ if [ "$slides_path" = "" ]; then
 fi
 
 if [ "$css_path" != "" ]; then
-  [ -f "$css_path" ] || report_warning "CSS not found: $css_path"
+  [ -f "$css_path" ] || report_error 1 "CSS not found: $css_path"
 fi
-
-if [ "$overwrite_slides" = 'no' ]; then
-  [ -f "$slides_path" ] && report_error 1 "File already exists: $slides_path"
-fi
-
 
 # Generate slides html
 
@@ -441,15 +501,30 @@ window.onload = function() {
   document.getElementsByTagName('head')[0].appendChild(viewport);
 }
 
-function nextSlide(direction) {
-  var nextSlideIndex = false;
+function nextSlide(direction) {"
+
+if [ "${front_matter['loop']}" = "no" ]; then
+  echo "  var loop = false;"
+else
+  echo "  var loop = true;"
+fi
+
+echo " var nextSlideIndex = false;
 
   if (direction == 'forward') {
-     nextSlideIndex = currentSlideIndex + 1;
-     if (nextSlideIndex == slides.length) nextSlideIndex = 0;
+
+    nextSlideIndex = currentSlideIndex + 1;
+
+    if (loop == false && nextSlideIndex == slides.length) return
+
+    if (nextSlideIndex == slides.length) nextSlideIndex = 0;
   }
   else if (direction == 'backward') {
+
+    if (loop ==false && currentSlideIndex == 0) return
+
     nextSlideIndex = currentSlideIndex - 1;
+
     if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
   }
 
