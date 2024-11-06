@@ -133,6 +133,7 @@ display: block;
 body {
 line-height: 1;
 background-color: var(--color-bg);
+color: var(--color-fg);
 }
 ol, ul {
 list-style: none;
@@ -220,6 +221,7 @@ margin-left: 1em;
 }
 ul > li > ul {
 list-style-type: circle;
+margin: 0;
 }
 ul > li > ul > li {
 font-size: 1em;
@@ -626,16 +628,19 @@ slides[currentSlideIndex].style.display = 'block';
 find "$src_dir" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' \) \
 | sed 's/^\.\///' \
 | while read -r img; do
-  # Check slides contain image
-  grep -q 'src="'$img'"' "$slides_path" || continue
+  # Check slides contain reference to image
+  grep -q "$img" "$slides_path" || continue
 
   img_ext="${img##*.}"
   img_ext="${img_ext,,}" # lower case
   img_b64="$(base64 --wrap=0 "$img")"
 
-  sed -i -f - "$slides_path" << EOF
+  sed -i -f - "$slides_path" << IMGEOF
 s#src="${img}"#src="data:image/${img_ext};charset=utf-8;base64, ${img_b64}"#g
-EOF
+s#url('${img}');#url(data:image/${img_ext};base64,${img_b64});#g
+IMGEOF
+
+
 done
 
 # Embed favicon
