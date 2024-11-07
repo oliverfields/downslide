@@ -296,6 +296,24 @@ margin-right: 2em;
 float: right;
 margin-left: 2em;
 }
+.slide-links {
+position: absolute;
+bottom: 1em;
+right: 1em;
+}
+.slide-links span {
+opacity: .3;
+cursor: pointer;
+font-size: 2em;
+background-color: var(--color-fg);
+border-radius: .2em;
+width: 1em;
+display: inline-block;
+margin-left: .3em;
+}
+.slide-links .current-slide {
+opacity: .6;
+}
 CSSEOF
 )
 
@@ -571,6 +589,13 @@ echo " var nextSlideIndex = false;
   slides[currentSlideIndex].style.display = 'none';
   slides[nextSlideIndex].style.display = 'block';
   currentSlideIndex = nextSlideIndex;
+"
+
+if [ "${front_matter['slide links']}" = "yes" ]; then
+  echo "updateSlideLinks(currentSlideIndex);"
+fi
+
+echo "
 }
 
 
@@ -618,6 +643,56 @@ Array.from(slides).forEach(
 window.addEventListener('keydown', checkKey);
 
 slides[currentSlideIndex].style.display = 'block';
+"
+
+if [ "${front_matter['slide links']}" = "yes" ]; then
+  echo "
+function updateSlideLinks(slideIndex) {
+  var currentSlideClass = 'current-slide';
+  Array.from(slideLinks.children).forEach(
+    function(element, index, array) {
+      if (slideIndex == index) {
+        element.classList.add(currentSlideClass);
+      }
+      else {
+        element.classList.remove(currentSlideClass);
+      }
+    }
+  );
+}
+
+
+// Add slide links
+var slideLinks = document.createElement('div');
+slideLinks.classList.add('slide-links');
+Array.from(slides).forEach(
+  function(element, index, array) {
+    var slideLink = document.createElement('span');
+    if (index == 0) slideLink.classList.add('current-slide');
+    slideLink.innerHTML = '&nbsp;';
+
+    var slideTitle = element.getElementsByTagName('h1')[0];
+    if (typeof slideTitle == 'undefined') slideTitle = 'Slide ' + index;
+    else slideTitle = slideTitle.innerHTML;
+
+    slideLink.setAttribute('title', slideTitle);
+
+    slideLink.addEventListener('mouseup', e => {
+      e.stopPropagation()
+      slides[currentSlideIndex].style.display = 'none';
+      currentSlideIndex=index;
+      slides[currentSlideIndex].style.display = 'block';
+      updateSlideLinks(index);
+    })
+
+    slideLinks.append(slideLink);
+  }
+);
+document.body.append(slideLinks);
+"
+fi
+
+echo "
 </script>
 </body>
 </html>"
