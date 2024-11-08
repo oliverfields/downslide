@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="shortcut icon" href="favicon.png">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <meta name="author" content="Oliver Fields">
 <title>Slides with downslide</title>
@@ -38,6 +37,7 @@ display: block;
 body {
 line-height: 1;
 background-color: var(--color-bg);
+color: var(--color-fg);
 }
 ol, ul {
 list-style: none;
@@ -125,6 +125,7 @@ margin-left: 1em;
 }
 ul > li > ul {
 list-style-type: circle;
+margin: 0;
 }
 ul > li > ul > li {
 font-size: 1em;
@@ -198,6 +199,24 @@ margin-right: 2em;
 .right {
 float: right;
 margin-left: 2em;
+}
+.slide-links {
+position: absolute;
+bottom: 1em;
+right: 1em;
+}
+.slide-links span {
+opacity: .3;
+cursor: pointer;
+font-size: 2em;
+background-color: var(--color-fg);
+border-radius: .2em;
+width: 1em;
+display: inline-block;
+margin-left: .3em;
+}
+.slide-links .current-slide {
+opacity: .6;
 }
 </style>
 </head>
@@ -273,34 +292,58 @@ $ ls
 beach.jpg
 my_beach_slides.md
 $ downslide my_beach_slides.md
-</pre></div><!-- /slide -->
+</pre>
+</div><!-- /slide -->
 <script>
 // Set viewport
 window.onload = function() {
-  var slideWidth = document.getElementsByClassName('slide')[0].offsetWidth;
+  var slideWidth = Number(window.getComputedStyle(document.getElementsByClassName('slide')[0]).getPropertyValue('width').replace('px', ''));
   var scale = screen.width / slideWidth;
   var viewport = document.createElement('meta');
 
   viewport.setAttribute('name', 'viewport');
-  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale+'');
+  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale);
   document.getElementsByTagName('head')[0].appendChild(viewport);
 }
 
+function getCurrentSlideIndex() {
+  if (typeof(currentSlideIndex) == 'undefined') return 0;
+  return currentSlideIndex;
+}
+
+
+function setCurrentSlideIndex(index) {
+  currentSlideIndex = Number(index);
+}
+
 function nextSlide(direction) {
-  var nextSlideIndex = false;
+  var loop = true;
+  var nextSlideIndex = 0;
 
   if (direction == 'forward') {
-     nextSlideIndex = currentSlideIndex + 1;
-     if (nextSlideIndex == slides.length) nextSlideIndex = 0;
+
+    nextSlideIndex = currentSlideIndex + 1;
+
+    if (loop == false && nextSlideIndex == slides.length) return
+
+    if (nextSlideIndex == slides.length) nextSlideIndex = 0;
   }
   else if (direction == 'backward') {
+
+    if (loop ==false && currentSlideIndex == 0) return
+
     nextSlideIndex = currentSlideIndex - 1;
+
     if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
   }
 
+
   slides[currentSlideIndex].style.display = 'none';
   slides[nextSlideIndex].style.display = 'block';
-  currentSlideIndex = nextSlideIndex;
+  setCurrentSlideIndex(nextSlideIndex);
+
+updateSlideLinks(currentSlideIndex);
+
 }
 
 
@@ -325,7 +368,7 @@ document.addEventListener('mouseup', e => {
 })
 
 var slides = document.getElementsByClassName('slide');
-var currentSlideIndex = 0;
+var currentSlideIndex = getCurrentSlideIndex();
 
 var forwardKeys = [
   39, // Right arrow
@@ -348,6 +391,52 @@ Array.from(slides).forEach(
 window.addEventListener('keydown', checkKey);
 
 slides[currentSlideIndex].style.display = 'block';
+
+
+function updateSlideLinks(slideIndex) {
+  var currentSlideClass = 'current-slide';
+  Array.from(slideLinks.children).forEach(
+    function(element, index, array) {
+      if (slideIndex == index) {
+        element.classList.add(currentSlideClass);
+      }
+      else {
+        element.classList.remove(currentSlideClass);
+      }
+    }
+  );
+}
+
+
+// Add slide links
+var slideLinks = document.createElement('div');
+slideLinks.classList.add('slide-links');
+Array.from(slides).forEach(
+  function(element, index, array) {
+    var slideLink = document.createElement('span');
+    if (index == currentSlideIndex) slideLink.classList.add('current-slide');
+    slideLink.innerHTML = '&nbsp;';
+
+    var slideTitle = element.getElementsByTagName('h1')[0];
+    if (typeof slideTitle == 'undefined') slideTitle = 'Slide ' + index;
+    else slideTitle = slideTitle.innerHTML;
+
+    slideLink.setAttribute('title', slideTitle);
+
+    slideLink.addEventListener('mouseup', e => {
+      e.stopPropagation()
+      slides[currentSlideIndex].style.display = 'none';
+      setCurrentSlideIndex(index);
+      slides[currentSlideIndex].style.display = 'block';
+      updateSlideLinks(index);
+    })
+
+    slideLinks.append(slideLink);
+  }
+);
+document.body.append(slideLinks);
+
+
 </script>
 </body>
 </html>

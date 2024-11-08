@@ -18,7 +18,7 @@ report_warning() {
 
 
 usage() {
-  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-d|--dump-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] <MARKDOWN_PATH>"
+  echo -e "\e[1mdownslide\e[0m [-c|--css <CSS_PATH>] [-p|--print-css] [-f|--force] [-h|--help] [-l|--live-rebuild] [-o|--output <OUTPUT_PATH>] [-t|--print-template] <MARKDOWN_PATH>"
 }
 
 
@@ -39,32 +39,42 @@ Slides are formatted with Python-Markdown, an implementation of John Gruber’s 
 Slides may be configured using front matter. Front matter is declared by the first line being three dashes followed by lines containing key value pairs and finally a line containing three dashes.
 
     \e[1mExample front matter\e[0m
+' | fmt
 
+  echo -e '
         ---
         key1: value1
         keyN: valueN
         ---
         <markdown>
+'
 
+  echo -e '
 All key values can be referenced in the markdown or css files as ${key} and will be replaced with the value.
 
 Downslide reserves the following key/values for specific purposes:
+' | fmt
 
-NAME        DEFAULT     DESCRIPTION
-css         <none>      Path to CSS
-description <none>      Value for <meta> description HTML tag
-loop        yes         If no, loop to first slide after last slide
-output      <none>      Path to output slide HTML file
-title       <file name> Value for <title> HTML tag
+  echo -e '
+NAME         DEFAULT DESCRIPTION
+----         ------- -----------
+css          <none>  Path to CSS
+description  <none>  Value for <meta> description HTML tag
+loop         yes     If no, loop to first slide after last slide
+output       <none>  Path to output slide HTML file
+title        <file>  Value for <title> HTML tag
+slide links  no      Links to each slide and show progress
+localstorage no      Use localstorage to save slide state
+'
 
-
+echo -e '
 \e[1mArguments\e[0m
 
     \e[1m-c. --css\e[0m <CSS_PATH>
         Use CSS from file CSS_PATH in slides
 
-    \e[1m-d, --dump-css\e[0m
-        Dump default CSS, useful starting point for custom CSS theme
+    \e[1m-p, --print-css\e[0m
+        Print default CSS, useful starting point for custom CSS theme
 
     \e[1m-f, --force\e[0m
         Overwrite any existing slides
@@ -74,6 +84,9 @@ title       <file name> Value for <title> HTML tag
 
     \e[1m-o, --output\e[0m <OUTPUT_PATH>
         Specify the Web/HTML slides file path, defaults to MARKDOWN_PATH with .html extension
+
+    \e[1m-t, --print-template\e[0m
+        Print a slide template
 
     \e[1m-h, --help\e[0m
         This text.
@@ -316,6 +329,27 @@ opacity: .6;
 }
 CSSEOF
 )
+slide_template=$(cat <<TEMPLATEEOF
+---
+title: Lets go
+description: Travels slide deck
+loop: no
+slide links: yes
+localstorage: no
+---
+---{: .title-slide }
+
+# ${title}
+
+---
+
+# Example
+
+- item 1
+- item 2
+
+TEMPLATEEOF
+)
 
 # for implicitly loops over the arguments, this effectivly captures value of last argument
 for src; do true; done
@@ -323,77 +357,71 @@ for src; do true; done
 [ "$src" = "" ] && usage && exit 0
 
 case $src in
-  -h|--help)
-    usage
-    help_msg
-    exit 0
-  ;;
-  -d|--dump-css)
-    echo "$default_css"
-    exit 0
+  -h|--help|-p|--print-css|-t|--print-template)
+    :
   ;;
   *)
     [ -f "$src" ] || report_error 1 "File not found: $src"
+
+    src_dir="$(dirname "$src")"
+
+    # Read frontmatter
+    first_line='yes'
+    is_front_matter='no'
+    while read -r line; do
+      if [ "$first_line" = "yes" ]; then
+        # There is front matter
+        if [ "$line" = "---" ]; then
+          first_line='no'
+          is_front_matter='yes'
+          continue
+        else
+          # There is no front matter
+          break
+        fi
+      elif [ "$is_front_matter" = 'yes' ]; then
+        # End of front matter
+        if [ "$line" = '---' ]; then
+          break
+        else
+          fm_key="${line%:*}"
+          fm_value="${line#*:}"
+
+          # Trim any spaces
+          fm_key="${fm_key#\ *}"
+          fm_key="${fm_key%*\ }"
+          fm_key="${fm_key,,}" # Lower case
+          fm_value="${fm_value#\ *}"
+          fm_value="${fm_value%*\ }"
+
+          if [[ -v "front_matter[$fm_key]" ]]; then
+            report_warning "Front matter key '$fm_key' already defined"
+          else
+            front_matter["$fm_key"]="$fm_value"
+          fi
+        fi
+      fi
+    done <<<"$(cat "$src")"
+
+    if [[ -v "front_matter[title]" ]]; then
+      slides_title="${front_matter['title']}"
+    else
+      slides_title="$(basename "$src")"
+      slides_title="${slides_title%.*}"
+    fi
+
+    if [[ -v "front_matter[output]" ]]; then
+      slides_path="${front_matter['output']}"
+    fi
+
+    if [[ -v "front_matter[css]" ]]; then
+      css_path="${front_matter['css']}"
+    fi
   ;;
 esac
 
-src_dir="$(dirname "$src")"
-
-# Read frontmatter
-first_line='yes'
-is_front_matter='no'
-while read -r line; do
-  if [ "$first_line" = "yes" ]; then
-    # There is front matter
-    if [ "$line" = "---" ]; then
-      first_line='no'
-      is_front_matter='yes'
-      continue
-    else
-      # There is no front matter
-      break
-    fi
-  elif [ "$is_front_matter" = 'yes' ]; then
-    # End of front matter
-    if [ "$line" = '---' ]; then
-      break
-    else
-      fm_key="${line%:*}"
-      fm_value="${line#*:}"
-
-      # Trim any spaces
-      fm_key="${fm_key#\ *}"
-      fm_key="${fm_key%*\ }"
-      fm_key="${fm_key,,}" # Lower case
-      fm_value="${fm_value#\ *}"
-      fm_value="${fm_value%*\ }"
-
-      if [[ -v "front_matter[$fm_key]" ]]; then
-        report_warning "Front matter key '$fm_key' already defined"
-      else
-        front_matter["$fm_key"]="$fm_value"
-      fi
-    fi
-  fi
-done <<<"$(cat "$src")"
-
-if [[ -v "front_matter[title]" ]]; then
-  slides_title="${front_matter['title']}"
-else
-  slides_title="$(basename "$src")"
-  slides_title="${slides_title%.*}"
-fi
-
-if [[ -v "front_matter[output]" ]]; then
-  slides_path="${front_matter['output']}"
-fi
-
-if [[ -v "front_matter[css]" ]]; then
-  css_path="${front_matter['css']}"
-fi
-
 # Set arguments
-args=$(getopt -l "output: css: force dump-default-css live-reload help" -o "o:c:fdlh" -- "$@")
+args=$(getopt -l "output: css: force print-css live-reload help print-template" -o "o:c:fplht" -- "$@")
 
 eval set -- "$args"
 
@@ -420,8 +448,12 @@ while [ $# -ge 1 ]; do
     -l|--live-reload)
       live_rebuild='yes'
     ;;
-    -d|--dump-css)
+    -p|--print-css)
       echo "$default_css"
+      exit 0
+    ;;
+    -t|--print-template)
+      echo "$slide_template"
       exit 0
     ;;
     -h|--help)
@@ -463,9 +495,13 @@ fi
 {
   echo "<!DOCTYPE html>
 <html>
-<head>
-<link rel=\"shortcut icon\" href=\"favicon.png\">
-<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
+<head>"
+
+if [ -e "favicon.png" ]; then
+  echo "<link rel=\"shortcut icon\" href=\"favicon.png\">"
+fi
+
+echo "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
 
   if [[ -v "front_matter[author]" ]]; then
     echo "<meta name=\"author\" content=\"${front_matter['author']}\">"
@@ -550,16 +586,43 @@ fi
   echo "<script>
 // Set viewport
 window.onload = function() {
-  var slideWidth = document.getElementsByClassName('slide')[0].offsetWidth;
+  var slideWidth = Number(window.getComputedStyle(document.getElementsByClassName('slide')[0]).getPropertyValue('width').replace('px', ''));
   var scale = screen.width / slideWidth;
   var viewport = document.createElement('meta');
 
   viewport.setAttribute('name', 'viewport');
-  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale+'');
+  viewport.setAttribute('content', 'width='+slideWidth+', initial-scale='+scale);
   document.getElementsByTagName('head')[0].appendChild(viewport);
 }
+"
 
-function nextSlide(direction) {"
+if [ "${front_matter['localstorage']}" != "yes" ]; then
+  echo "function getCurrentSlideIndex() {
+  if (typeof(currentSlideIndex) == 'undefined') return 0;
+  return currentSlideIndex;
+}
+
+
+function setCurrentSlideIndex(index) {
+  currentSlideIndex = Number(index);
+}
+"
+else
+  echo "function getCurrentSlideIndex() {
+  currentIndex = localStorage.getItem('currentIndex');
+  if (currentIndex == null) return 0;
+  return Number(currentIndex);
+}
+
+
+function setCurrentSlideIndex(index) {
+  localStorage.setItem('currentIndex', index);
+  currentSlideIndex = index;
+}
+"
+fi
+
+echo "function nextSlide(direction) {"
 
 if [ "${front_matter['loop']}" = "no" ]; then
   echo "  var loop = false;"
@@ -567,7 +630,7 @@ else
   echo "  var loop = true;"
 fi
 
-echo " var nextSlideIndex = false;
+echo "  var nextSlideIndex = 0;
 
   if (direction == 'forward') {
 
@@ -586,9 +649,10 @@ echo " var nextSlideIndex = false;
     if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
   }
 
+
   slides[currentSlideIndex].style.display = 'none';
   slides[nextSlideIndex].style.display = 'block';
-  currentSlideIndex = nextSlideIndex;
+  setCurrentSlideIndex(nextSlideIndex);
 "
 
 if [ "${front_matter['slide links']}" = "yes" ]; then
@@ -620,7 +684,7 @@ document.addEventListener('mouseup', e => {
 })
 
 var slides = document.getElementsByClassName('slide');
-var currentSlideIndex = 0;
+var currentSlideIndex = getCurrentSlideIndex();
 
 var forwardKeys = [
   39, // Right arrow
@@ -668,7 +732,7 @@ slideLinks.classList.add('slide-links');
 Array.from(slides).forEach(
   function(element, index, array) {
     var slideLink = document.createElement('span');
-    if (index == 0) slideLink.classList.add('current-slide');
+    if (index == currentSlideIndex) slideLink.classList.add('current-slide');
     slideLink.innerHTML = '&nbsp;';
 
     var slideTitle = element.getElementsByTagName('h1')[0];
@@ -680,7 +744,7 @@ Array.from(slides).forEach(
     slideLink.addEventListener('mouseup', e => {
       e.stopPropagation()
       slides[currentSlideIndex].style.display = 'none';
-      currentSlideIndex=index;
+      setCurrentSlideIndex(index);
       slides[currentSlideIndex].style.display = 'block';
       updateSlideLinks(index);
     })

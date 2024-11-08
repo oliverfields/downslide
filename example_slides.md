@@ -1,6 +1,7 @@
 ---
 author: Oliver Fields
 title: Slides with downslide
+slide links: yes
 ---
 
 # ${title} {: .slides-title }
