@@ -149,7 +149,10 @@ background-color: var(--color-bg);
 color: var(--color-fg);
 }
 ol, ul {
-list-style: none;
+margin-left: var(--default-margin);
+}
+blockquote p {
+font-family: var(--mono-font);
 }
 blockquote, q {
 quotes: none;
@@ -170,6 +173,7 @@ border-spacing: 0;
 --color-fg: #04151F;
 --color-highlight: #6D72C3;
 --text-font: Georgia, serif;
+--mono-font: Courier, monospace;
 --title-font: Georgia, serif;
 --font-default-size: 2.6em;
 --color-highlight: #2E86AB;
@@ -249,6 +253,7 @@ margin: var(--default-margin);
 font-size: 1.8em;
 line-height: 1.2em;
 padding: 1em;
+display: inline-block;
 }
 .slides-title {
 text-align: center;
@@ -526,6 +531,7 @@ echo "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
 
   # Strip any front matter and convert markdown to html
   first_line=''
+  IFS='' # Preserve whitespace
   cat "$src" | while read -r line; do
     # Is there front matter?
     if [ "$first_line" = "" ]; then
