@@ -171,12 +171,11 @@ border-spacing: 0;
 :root {
 --color-bg: #F8FFE5;
 --color-fg: #04151F;
---color-highlight: #6D72C3;
+--color-highlight: #2E86AB;
 --text-font: Georgia, serif;
 --mono-font: Courier, monospace;
 --title-font: Georgia, serif;
 --font-default-size: 2.6em;
---color-highlight: #2E86AB;
 --slide-width: 1280px;
 --slide-height: 720px;
 --default-margin: 40px;
@@ -249,7 +248,7 @@ color: var(--color-bg);
 background-color: var(--color-fg);
 border-radius: .5em;
 font-family: courier, monospace;
-margin: var(--default-margin);
+margin: .5em var(--default-margin);
 font-size: 1.8em;
 line-height: 1.2em;
 padding: 1em;
@@ -279,6 +278,8 @@ margin: auto;
 max-width: 100%;
 max-height: 100%;
 overflow: auto;
+}
+.hidden {
 display: none;
 }
 .full-width {
@@ -332,6 +333,34 @@ margin-left: .3em;
 .slide-links .current-slide {
 opacity: .6;
 }
+@media print {
+  :root {
+  --color-bg: #FFFFFF;
+  --color-fg: #000000;
+  --color-highlight: #000000;
+  }
+  @page {
+  size: landscape;
+  }
+  .slide-links {
+  display: none;
+  }
+  a::after {
+  content: " (" attr(href) ")";
+  }
+  .hidden {
+  display: block;
+  }
+  .slide {
+  break-after: always;
+  position: relative;
+  display: block;
+  border: solid 1px black;
+  max-width: unset;
+  max-height: unset;
+  }
+}
+
 CSSEOF
 )
 slide_template=$(cat <<TEMPLATEEOF
@@ -580,7 +609,7 @@ echo "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
     # All slides except the first
     if [[ "$is_slide_class_line" = "yes" || "$line" = "<hr />" ]]; then
       echo "</div><!-- /slide -->
-<div class=\"slide$class_names\">"
+<div class=\"slide hidden $class_names\">"
     else
       echo "$line"
     fi
@@ -655,9 +684,8 @@ echo "  var nextSlideIndex = 0;
     if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
   }
 
-
-  slides[currentSlideIndex].style.display = 'none';
-  slides[nextSlideIndex].style.display = 'block';
+  slides[currentSlideIndex].classList.add('hidden');
+  slides[nextSlideIndex].classList.remove('hidden');
   setCurrentSlideIndex(nextSlideIndex);
 "
 
@@ -706,13 +734,13 @@ var backwardKeys = [
 // Hide all slides
 Array.from(slides).forEach(
   function(element, index, array) {
-    element.style.display = 'none';
+    element.classList.add('hidden');
   }
 );
 
 window.addEventListener('keydown', checkKey);
 
-slides[currentSlideIndex].style.display = 'block';
+slides[currentSlideIndex].classList.remove('hidden');
 "
 
 if [ "${front_matter['slide links']}" = "yes" ]; then
@@ -749,9 +777,9 @@ Array.from(slides).forEach(
 
     slideLink.addEventListener('mouseup', e => {
       e.stopPropagation()
-      slides[currentSlideIndex].style.display = 'none';
+      slides[currentSlideIndex].classList.add('hidden');
       setCurrentSlideIndex(index);
-      slides[currentSlideIndex].style.display = 'block';
+      slides[currentSlideIndex].classList.remove('hidden');
       updateSlideLinks(index);
     })
 

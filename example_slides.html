@@ -40,7 +40,10 @@ background-color: var(--color-bg);
 color: var(--color-fg);
 }
 ol, ul {
-list-style: none;
+margin-left: var(--default-margin);
+}
+blockquote p {
+font-family: var(--mono-font);
 }
 blockquote, q {
 quotes: none;
@@ -59,11 +62,11 @@ border-spacing: 0;
 :root {
 --color-bg: #F8FFE5;
 --color-fg: #04151F;
---color-highlight: #6D72C3;
+--color-highlight: #2E86AB;
 --text-font: Georgia, serif;
+--mono-font: Courier, monospace;
 --title-font: Georgia, serif;
 --font-default-size: 2.6em;
---color-highlight: #2E86AB;
 --slide-width: 1280px;
 --slide-height: 720px;
 --default-margin: 40px;
@@ -136,10 +139,11 @@ color: var(--color-bg);
 background-color: var(--color-fg);
 border-radius: .5em;
 font-family: courier, monospace;
-margin: var(--default-margin);
+margin: .5em var(--default-margin);
 font-size: 1.8em;
 line-height: 1.2em;
 padding: 1em;
+display: inline-block;
 }
 .slides-title {
 text-align: center;
@@ -165,6 +169,8 @@ margin: auto;
 max-width: 100%;
 max-height: 100%;
 overflow: auto;
+}
+.hidden {
 display: none;
 }
 .full-width {
@@ -218,6 +224,33 @@ margin-left: .3em;
 .slide-links .current-slide {
 opacity: .6;
 }
+@media print {
+  :root {
+  --color-bg: #FFFFFF;
+  --color-fg: #000000;
+  --color-highlight: #000000;
+  }
+  @page {
+  size: landscape;
+  }
+  .slide-links {
+  display: none;
+  }
+  a::after {
+  content: " (" attr(href) ")";
+  }
+  .hidden {
+  display: block;
+  }
+  .slide {
+  break-after: always;
+  position: relative;
+  display: block;
+  border: solid 1px black;
+  max-width: unset;
+  max-height: unset;
+  }
+}
 </style>
 </head>
 <body>
@@ -227,7 +260,7 @@ opacity: .6;
 <p style="text-align: center; background-color: var(--color-fg); color: var(--color-bg); border-radius: .5em;">Navigate with ⬅️ , ➡️ or click</p>
 
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1>Features</h1>
 <ul>
 <li>Markup slides using Markdown</li>
@@ -237,7 +270,7 @@ opacity: .6;
 </ul>
 <p>☝️ Slides made with downslide, see the <a href="https://github.com/oliverfields/downslide/blob/main/example_slides.md?plain=1">markdown</a>.</p>
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1>Basic CLI usage</h1>
 <pre>
 $ downslide slides.md
@@ -246,14 +279,14 @@ slides.html  slides.md
 </pre>
 
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1>Navigating HTML slides</h1>
 <ul>
 <li>Next slide <strong>space, enter or right arrow</strong>, or click right side</li>
 <li>Previous slide <strong>backspace, left arrow</strong>, or click left side</li>
 </ul>
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1>Styling</h1>
 <p>Recommended starting point is to use the following command and edit <strong>style.css</strong> to taste.</p>
 <pre>
@@ -266,13 +299,13 @@ $ downslide --css style.css slides.md
 </pre>
 
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1>Front matter key/values</h1>
 <p>The following markdown represents a single slide. The title will be <strong>Nice slide</strong>. Note that front matter key names are converted to lower case.</p>
 <pre>
----
+--- 
 title: Nice slide
----
+--- 
 
 # &dollar;{title}
 
@@ -280,7 +313,7 @@ A slide about slides
 </pre>
 
 </div><!-- /slide -->
-<div class="slide">
+<div class="slide hidden ">
 <h1 style="font-size: 4em;">Embedding images</h1>
 <p>Any images that are referenced relatively in markdown will be automatically embedded in the slide HTML (base64).</p>
 <pre>
@@ -337,9 +370,8 @@ function nextSlide(direction) {
     if (nextSlideIndex == -1) nextSlideIndex = slides.length - 1;
   }
 
-
-  slides[currentSlideIndex].style.display = 'none';
-  slides[nextSlideIndex].style.display = 'block';
+  slides[currentSlideIndex].classList.add('hidden');
+  slides[nextSlideIndex].classList.remove('hidden');
   setCurrentSlideIndex(nextSlideIndex);
 
 updateSlideLinks(currentSlideIndex);
@@ -384,13 +416,13 @@ var backwardKeys = [
 // Hide all slides
 Array.from(slides).forEach(
   function(element, index, array) {
-    element.style.display = 'none';
+    element.classList.add('hidden');
   }
 );
 
 window.addEventListener('keydown', checkKey);
 
-slides[currentSlideIndex].style.display = 'block';
+slides[currentSlideIndex].classList.remove('hidden');
 
 
 function updateSlideLinks(slideIndex) {
@@ -425,9 +457,9 @@ Array.from(slides).forEach(
 
     slideLink.addEventListener('mouseup', e => {
       e.stopPropagation()
-      slides[currentSlideIndex].style.display = 'none';
+      slides[currentSlideIndex].classList.add('hidden');
       setCurrentSlideIndex(index);
-      slides[currentSlideIndex].style.display = 'block';
+      slides[currentSlideIndex].classList.remove('hidden');
       updateSlideLinks(index);
     })
 
