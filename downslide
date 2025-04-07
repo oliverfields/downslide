@@ -353,9 +353,9 @@ opacity: .6;
   }
   .slide {
   break-after: always;
+  page-break-after: always;
   position: relative;
   display: block;
-  border: solid 1px black;
   max-width: unset;
   max-height: unset;
   }
