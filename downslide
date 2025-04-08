@@ -183,7 +183,7 @@ border-spacing: 0;
 h1 {
 font-family: var(--title-font);
 font-size: 5em;
-margin-top: 0;
+margin-top: .1em;
 margin-right: var(--default-margin);
 margin-bottom: .5em;
 margin-left: var(--default-margin);
@@ -231,9 +231,13 @@ margin: var(--default-margin);
 li {
 font-size: var(--font-default-size);
 font-family: var(--text-font);
-line-height: 1.5em;
+line-height: 1.3em;
 list-style-position: outside;
 margin-left: 1em;
+margin-bottom: .5em;
+}
+li::marker {
+color: var(--color-highlight);
 }
 ul > li > ul {
 list-style-type: circle;
@@ -317,21 +321,22 @@ margin-left: 2em;
 }
 .slide-links {
 position: absolute;
-bottom: 1em;
+bottom: .3em;
 right: 1em;
 }
 .slide-links span {
-opacity: .3;
+opacity: .1;
 cursor: pointer;
 font-size: 2em;
 background-color: var(--color-fg);
-border-radius: .2em;
+border-radius: .1em;
 width: 1em;
+height: .7em;
 display: inline-block;
 margin-left: .3em;
 }
 .slide-links .current-slide {
-opacity: .6;
+opacity: .4;
 }
 @media print {
   :root {
@@ -531,9 +536,82 @@ fi
 <html>
 <head>"
 
-if [ -e "favicon.png" ]; then
-  echo "<link rel=\"shortcut icon\" href=\"favicon.png\">"
-fi
+echo "<link rel=\"shortcut icon\" href=\"data:image/x-icon;base64,AAABAAEAICAAAAEAIACoEAAAFgAAACgAAAAgAAAAQAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wAAAAAQAAAATgAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQ
+AAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAATgAAABD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AAAAAMIAAAD/AAAA/wAAAP8AAAD/AAAA/wAA
+AP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAAwv///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wAAAAAKAAAAawAAAB////8AAAAA4AAAAP8AAADc
+AAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA3AAAAP8A
+AADg////AAAAAB8AAABrAAAACv///wD///8A////AP///wD///8A////AAAAAGAAAAD/AAAAoP//
+/wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wAAAABAAAAA/wAAAOD///8AAAAAoAAAAP8AAABg////AP///wD///8AAAAAcAAAAIj///8A
+AAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHD///8AAAAAhwAA
+AHAAAAD6AAAA/wAAABoAAABwAAAA/wAAALD///8AAAAA4AAAAP8AAABA////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAALAAAAD/
+AAAAcAAAABoAAAD/AAAA+gAAAP8AAAD/AAAAIAAAAHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAA
+AOD///8AAAAAsAAAAP8AAABwAAAAIAAAAP8AAAD/AAAA/wAAAP8AAAAgAAAAcAAAAP8AAACw////
+AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHAAAAAgAAAA/wAAAP8AAAD/AAAA/wAAACAA
+AABwAAAA/wAAALD///8AAAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAALAAAAD/AAAAcAAAACAAAAD/AAAA
+/wAAAP8AAAD/AAAAIAAAAHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAsAAAAP8A
+AABwAAAAIAAAAP8AAAD/AAAA/wAAAP8AAAAgAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA
+4P///wAAAACwAAAA/wAAAHAAAAAgAAAA/wAAAP8AAAD/AAAA/wAAACAAAABwAAAA/wAAALD///8A
+AAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8AAAAAQAAAAP8AAADg////AAAAALAAAAD/AAAAcAAAACAAAAD/AAAA/wAAAPoAAAD/AAAAGgAA
+AHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAsAAAAP8AAABwAAAAGgAAAP8AAAD6
+AAAAcAAAAIj///8AAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAA
+AHD///8AAAAAhwAAAHD///8A////AP///wAAAABgAAAA/wAAAKD///8AAAAA4AAAAP8AAABA////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg
+////AAAAAKAAAAD/AAAAYP///wD///8A////AP///wD///8A////AAAAAAoAAABrAAAAH////wAA
+AADgAAAA/wAAANwAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAA
+ANAAAADcAAAA/wAAAOD///8AAAAAHwAAAGsAAAAK////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AAAAAMIAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/
+AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAAwv///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8AAAAAEAAAAE4AAABQAAAAUAAAAFAAAABQAAAAUAAA
+AFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAE4AAAAQ////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A
+////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD/
+//8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP//
+/wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////
+//////////////////////////////////4AAH/+AAB/4gAAR+I//EciP/xEAj/8QAI//EACP/xA
+Aj/8QAI//EACP/xAAj/8QAI//EAiP/xE4j/8R+IAAEf+AAB//gAAf///////////////////////
+//////////////8=\">"
 
 echo "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
 
