@@ -720,6 +720,8 @@ document.addEventListener('mouseup', e => {
 var slides = document.getElementsByClassName('slide');
 var currentSlideIndex = getCurrentSlideIndex();
 
+if (currentSlideIndex > slides.length) { currentSlideIndex = slides.length - 1 };
+
 var forwardKeys = [
   39, // Right arrow
   32, // Space
