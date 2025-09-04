@@ -189,6 +189,15 @@ margin-bottom: .5em;
 margin-left: var(--default-margin);
 opacity: .6;
 }
+h2 {
+font-family: var(--title-font);
+font-size: 3em;
+margin-top: 1em;
+margin-right: var(--default-margin);
+margin-bottom: .5em;
+margin-left: var(--default-margin);
+opacity: .8;
+}
 strong {
 font-weight: bold;
 }
@@ -208,17 +217,14 @@ margin: var(--default-margin);
 a, a:visited {
 color: var(--color-highlight);
 }
-tbody {
-border-top: solid .3em var(--color-fg);
-border-bottom: solid .3em var(--color-fg);
-}
 th {
 font-weight: bold;
+text-align: left;
 }
 th, td {
 font-size: var(--font-default-size);
 font-family: var(--text-font);
-padding: .2em;
+padding: .3em;
 }
 table {
 margin: var(--default-margin);
@@ -257,17 +263,6 @@ font-size: 1.8em;
 line-height: 1.2em;
 padding: 1em;
 display: inline-block;
-}
-.slides-title {
-text-align: center;
-font-size: 4em;
-margin: var(--default-margin);
-text-transform: uppercase;
-}
-.slides-sub-title {
-text-align: center;
-font-size: 3em;
-opacity: .6;
 }
 .slide {
 /* Thanks for the div v and h centering: https://stackoverflow.com/a/14816807 */
@@ -339,6 +334,57 @@ margin-left: .3em;
 .slide-links .current-slide {
 opacity: .4;
 }
+.font10  { font-size: 10%; }
+.font20  { font-size: 20%; }
+.font30  { font-size: 30%; }
+.font40  { font-size: 40%; }
+.font50  { font-size: 50%; }
+.font60  { font-size: 60%; }
+.font70  { font-size: 70%; }
+.font80  { font-size: 80%; }
+.font90  { font-size: 90%; }
+.font100 { font-size: 100%; }
+.font110 { font-size: 110%; }
+.font120 { font-size: 120%; }
+.font130 { font-size: 130%; }
+.font140 { font-size: 140%; }
+.font150 { font-size: 150%; }
+.font160 { font-size: 160%; }
+.font170 { font-size: 170%; }
+.font180 { font-size: 180%; }
+.font190 { font-size: 190%; }
+.font200 { font-size: 200%; }
+.font210 { font-size: 210%; }
+.font220 { font-size: 220%; }
+.font230 { font-size: 230%; }
+.font240 { font-size: 240%; }
+.font250 { font-size: 250%; }
+.font260 { font-size: 260%; }
+.font270 { font-size: 270%; }
+.font280 { font-size: 280%; }
+.font290 { font-size: 290%; }
+.font300 { font-size: 300%; }
+.font310 { font-size: 310%; }
+.font320 { font-size: 320%; }
+.font330 { font-size: 330%; }
+.font340 { font-size: 340%; }
+.font350 { font-size: 350%; }
+.font360 { font-size: 360%; }
+.font370 { font-size: 370%; }
+.font380 { font-size: 380%; }
+.font390 { font-size: 390%; }
+.font400 { font-size: 400%; }
+.font410 { font-size: 410%; }
+.font420 { font-size: 420%; }
+.font430 { font-size: 430%; }
+.font440 { font-size: 440%; }
+.font450 { font-size: 450%; }
+.font460 { font-size: 460%; }
+.font470 { font-size: 470%; }
+.font480 { font-size: 480%; }
+.font490 { font-size: 490%; }
+.font500 { font-size: 500%; }
+
 @media print {
   :root {
   --color-bg: #FFFFFF;
@@ -456,6 +502,12 @@ case $src in
     if [[ -v "front_matter[css]" ]]; then
       css_path="${front_matter['css']}"
     fi
+
+    if [[ -v "front_matter[favicon]" ]]; then
+      favicon="${front_matter['favicon']}"
+    else
+      favicon="🎞️"
+    fi
   ;;
 esac
 
@@ -539,7 +591,8 @@ fi
 
   echo "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">"
 
-  echo '<link rel="shortcut icon" href="data:image/x-icon;base64,AAABAAEAICAAAAEAIACoEAAAFgAAACgAAAAgAAAAQAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAAAQAAAATgAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAATgAAABD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAMIAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAAwv///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAAAKAAAAawAAAB////8AAAAA4AAAAP8AAADcAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA3AAAAP8AAADg////AAAAAB8AAABrAAAACv///wD///8A////AP///wD///8A////AAAAAGAAAAD/AAAAoP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAoAAAAP8AAABg////AP///wD///8AAAAAcAAAAIj///8AAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHD///8AAAAAhwAAAHAAAAD6AAAA/wAAABoAAABwAAAA/wAAALD///8AAAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAALAAAAD/AAAAcAAAABoAAAD/AAAA+gAAAP8AAAD/AAAAIAAAAHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAsAAAAP8AAABwAAAAIAAAAP8AAAD/AAAA/wAAAP8AAAAgAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHAAAAAgAAAA/wAAAP8AAAD/AAAA/wAAACAAAABwAAAA/wAAALD///8AAAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAALAAAAD/AAAAcAAAACAAAAD/AAAA/wAAAP8AAAD/AAAAIAAAAHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAsAAAAP8AAABwAAAAIAAAAP8AAAD/AAAA/wAAAP8AAAAgAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHAAAAAgAAAA/wAAAP8AAAD/AAAA/wAAACAAAABwAAAA/wAAALD///8AAAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAALAAAAD/AAAAcAAAACAAAAD/AAAA/wAAAPoAAAD/AAAAGgAAAHAAAAD/AAAAsP///wAAAADgAAAA/wAAAED///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAAABAAAAA/wAAAOD///8AAAAAsAAAAP8AAABwAAAAGgAAAP8AAAD6AAAAcAAAAIj///8AAAAAcAAAAP8AAACw////AAAAAOAAAAD/AAAAQP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAEAAAAD/AAAA4P///wAAAACwAAAA/wAAAHD///8AAAAAhwAAAHD///8A////AP///wAAAABgAAAA/wAAAKD///8AAAAA4AAAAP8AAABA////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAQAAAAP8AAADg////AAAAAKAAAAD/AAAAYP///wD///8A////AP///wD///8A////AAAAAAoAAABrAAAAH////wAAAADgAAAA/wAAANwAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADQAAAA0AAAANAAAADcAAAA/wAAAOD///8AAAAAHwAAAGsAAAAK////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAMIAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAAwv///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAEAAAAE4AAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAE4AAAAQ////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A//////////////////////////////////////4AAH/+AAB/4gAAR+I//EciP/xEAj/8QAI//EACP/xAAj/8QAI//EACP/xAAj/8QAI//EAiP/xE4j/8R+IAAEf+AAB//gAAf/////////////////////////////////////8=">'
+  echo '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='\''http://www.w3.org/2000/svg'\'' viewBox='\''0 0 32 32'\''%3E%3Ctext x='\''16'\'' y='\''26'\'' font-size='\''28'\'' text-anchor='\''middle'\'' fill='\''black'\'' font-family='\''Arial'\''%3E'$favicon'%3C/text%3E%3C/svg%3E">'
+
 
   if [[ -v "front_matter[author]" ]]; then
     echo "<meta name=\"author\" content=\"${front_matter['author']}\">"
@@ -824,16 +877,17 @@ done
 
 # Embed favicon
 # TODO allow favicons with different name or extensions
-if grep -q 'rel="shortcut icon"' "$slides_path"; then
-  favicon="favicon.png"
-  if [ -f "$src_dir/$favicon" ]; then
-    b64="$(base64 --wrap=0 "$favicon")"
+#if grep -q 'rel="shortcut icon"' "$slides_path"; then
+#  favicon="favicon.png"
+#  if [ -f "$src_dir/$favicon" ]; then
+#    b64="$(base64 --wrap=0 "$favicon")"
+#
+#    sed -i -f - "$slides_path" << EOF
+#s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
+#EOF
+#  fi
+#fi
 
-    sed -i -f - "$slides_path" << EOF
-s#\(<link[^>]*\)href="$favicon"#\1href="data:image/png;charset=utf-8;base64, ${b64}"#g
-EOF
-  fi
-fi
 
 # Update any front matter key values in html
 for key in "${!front_matter[@]}"; do
