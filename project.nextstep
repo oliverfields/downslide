@@ -1,0 +1,15 @@
+DONE if localstore currentindex is greater than number of slides, then set it to final slide
+WONT too much work -> hide slides if class hidden
+DONE PDF print css
+DONE front matter class: front back added to slide dic class attr
+WONT don't be overbearing -> if a .css exists in src dir and using default css then write notice msg
+DONE implement ssb theme
+DONE specify css file in front matter
+DONE specify output path in front matter
+DONE front matter next slide: loop or end if end disable next slide on last slide
+WONT maybe later -> fron matter set scroll mode vertical or horizontal
+WONT not now, lots of work -> overview showing slide thumbnails
+DONE progress bar/dots w link to show particular slide
+DONE Refresh pages loses focus, possible to make it a SPA and use query string slide=x to navigate and get history?
+TODO ability to either use specified css or append css to default
+TODO Watch for change to any images that exist in src_dir
