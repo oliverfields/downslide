@@ -11,5 +11,5 @@ WONT maybe later -> fron matter set scroll mode vertical or horizontal
 WONT not now, lots of work -> overview showing slide thumbnails
 DONE progress bar/dots w link to show particular slide
 DONE Refresh pages loses focus, possible to make it a SPA and use query string slide=x to navigate and get history?
-TODO ability to either use specified css or append css to default
-TODO Watch for change to any images that exist in src_dir
+NEXTSTEP ability to either use specified css or append css to default
+NEXTSTEP Watch for change to any images that exist in src_dir
